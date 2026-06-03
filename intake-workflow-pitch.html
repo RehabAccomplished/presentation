@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GrowEdgeX — Intake Presentation | Kona Medical Consulting</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --blue:#1449BF; --blue-dark:#0F3A99; --navy:#0E172A;
+  --mint:#00C896; --red:#E8304A; --amber:#F5A800;
+  --sky:#0099DD; --green:#16A34A; --purple:#6C63FF;
+  --white:#FFFFFF; --bg:#F4F6FC; --surface:#FFFFFF;
+  --border:#DDE3F0; --text:#0E172A; --muted:#5A6A85;
+  --top-h:68px; --bot-h:48px;
+}
+
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:var(--bg);cursor:none;}
+
+/* ── CURSOR ── */
+.cursor{position:fixed;width:12px;height:12px;border-radius:50%;background:var(--blue);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .18s,height .18s;opacity:.5;}
+.cursor.big{width:40px;height:40px;opacity:.12;}
+
+/* ── PROGRESS ── */
+.progress{position:fixed;top:var(--top-h);left:0;height:3px;z-index:500;background:linear-gradient(90deg,var(--blue),var(--mint));transition:width .45s cubic-bezier(.22,.84,.44,1);}
+
+/* ════════════════════════════
+   TOP BAR
+════════════════════════════ */
+.top-bar{
+  position:fixed;top:0;left:0;right:0;height:var(--top-h);z-index:400;
+  background:var(--white);border-bottom:2px solid var(--blue);
+  display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
+  padding:0 28px;box-shadow:0 2px 16px rgba(20,73,191,.1);gap:16px;
+}
+.tb-left{display:flex;align-items:center;gap:14px;}
+.tb-logo{height:52px;object-fit:contain;display:block;}
+.tb-logo-text{font-size:20px;font-weight:900;color:var(--navy);}
+.tb-logo-text span{color:var(--blue);}
+.tb-div{width:1px;height:30px;background:var(--border);flex-shrink:0;}
+.tb-subtitle{font-size:12px;font-weight:600;color:var(--muted);}
+
+/* ── DECK SWITCHER ── */
+.deck-switcher{
+  display:flex;align-items:center;gap:4px;
+  background:var(--bg);border:1.5px solid var(--border);
+  border-radius:12px;padding:4px;
+}
+.ds-btn{
+  padding:8px 20px;border-radius:9px;border:none;cursor:pointer;
+  font-family:'Inter',sans-serif;font-size:12px;font-weight:700;
+  color:var(--muted);background:transparent;transition:all .2s;white-space:nowrap;
+}
+.ds-btn.active{background:var(--blue);color:var(--white);box-shadow:0 2px 8px rgba(20,73,191,.25);}
+.ds-btn:hover:not(.active){color:var(--blue);background:rgba(20,73,191,.06);}
+
+.tb-right{display:flex;align-items:center;gap:12px;justify-content:flex-end;}
+.tb-for{font-size:11px;color:var(--muted);font-weight:500;}
+.tb-client{font-size:12px;font-weight:800;color:var(--blue);}
+.tb-badge{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;background:var(--blue);color:var(--white);padding:5px 11px;border-radius:6px;}
+
+/* ════════════════════════════
+   BOTTOM BAR
+════════════════════════════ */
+.bot-bar{
+  position:fixed;bottom:0;left:0;right:0;height:var(--bot-h);z-index:400;
+  background:var(--white);border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;
+}
+.bb-left{display:flex;align-items:center;gap:12px;}
+.bb-dots{display:flex;gap:6px;align-items:center;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--border);cursor:pointer;transition:all .22s;}
+.dot.active{width:20px;border-radius:3px;background:var(--blue);}
+.bb-count{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.08em;}
+.bb-right{display:flex;align-items:center;gap:14px;}
+.bb-links{display:flex;gap:12px;align-items:center;}
+.bb-links a{font-size:10px;color:var(--muted);text-decoration:none;font-weight:500;transition:color .2s;}
+.bb-links a:hover{color:var(--blue);}
+.bb-sep{color:var(--border);font-size:10px;}
+.bb-copy{font-size:10px;color:var(--muted);}
+.nav-pair{display:flex;gap:5px;}
+.nav-btn{width:30px;height:30px;border-radius:8px;border:1.5px solid var(--border);background:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--navy);transition:all .18s;font-weight:700;}
+.nav-btn:hover{background:var(--blue);border-color:var(--blue);color:var(--white);}
+.nav-btn:disabled{opacity:.25;pointer-events:none;}
+
+/* ════════════════════════════
+   DECK / SLIDE ENGINE
+════════════════════════════ */
+#deck{position:fixed;top:var(--top-h);bottom:var(--bot-h);left:0;right:0;overflow:hidden;}
+.slide{position:absolute;inset:0;display:flex;opacity:0;pointer-events:none;overflow:hidden;}
+.slide.active{opacity:1;pointer-events:all;}
+.slide.enter-right{animation:sInR .48s cubic-bezier(.22,.84,.44,1) forwards;}
+.slide.enter-left {animation:sInL .48s cubic-bezier(.22,.84,.44,1) forwards;}
+.slide.exit-left  {animation:sOutL .38s cubic-bezier(.55,0,.78,.17) forwards;}
+.slide.exit-right {animation:sOutR .38s cubic-bezier(.55,0,.78,.17) forwards;}
+@keyframes sInR  {from{transform:translateX(100%)}to{transform:translateX(0)}}
+@keyframes sInL  {from{transform:translateX(-100%)}to{transform:translateX(0)}}
+@keyframes sOutL {from{transform:translateX(0)}to{transform:translateX(-100%)}}
+@keyframes sOutR {from{transform:translateX(0)}to{transform:translateX(100%)}}
+
+.anim{opacity:0;transform:translateY(20px);transition:opacity .42s ease,transform .42s ease;}
+.anim.show{opacity:1;transform:translateY(0);}
+.d1{transition-delay:.05s}.d2{transition-delay:.1s}.d3{transition-delay:.15s}
+.d4{transition-delay:.2s}.d5{transition-delay:.25s}.d6{transition-delay:.3s}
+.d7{transition-delay:.35s}.d8{transition-delay:.4s}
+
+/* ════════════════════════════
+   SHARED HELPERS
+════════════════════════════ */
+.pad{padding:40px 56px 16px;display:flex;flex-direction:column;flex:1;}
+.eyebrow{font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--blue);margin-bottom:8px;}
+.s-head{font-size:clamp(26px,3.2vw,44px);font-weight:900;color:var(--navy);line-height:1.08;margin-bottom:24px;}
+.s-head .hl{color:var(--blue);}
+.card{background:var(--white);border:1.5px solid var(--border);border-radius:14px;box-shadow:0 2px 8px rgba(20,73,191,.05);}
+.card:hover{box-shadow:0 6px 20px rgba(20,73,191,.1);transform:translateY(-2px);}
+
+/* ── ICON SYSTEM ── */
+.icon-wrap{display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.icon-wrap svg{width:100%;height:100%;}
+
+/* ════════════════════════════
+   PEOPLE CARDS
+════════════════════════════ */
+.people-row{display:flex;gap:14px;margin-top:auto;padding-top:20px;}
+.person-card{
+  flex:1;background:var(--white);border:1.5px solid var(--border);
+  border-radius:14px;padding:16px 18px;
+  display:flex;align-items:center;gap:14px;
+  box-shadow:0 2px 8px rgba(20,73,191,.05);
+}
+.person-avatar{
+  width:46px;height:46px;border-radius:12px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:900;color:var(--white);letter-spacing:-.02em;
+}
+.person-name{font-size:13px;font-weight:800;color:var(--navy);}
+.person-title{font-size:11px;color:var(--muted);margin-top:2px;font-weight:500;}
+.person-org{font-size:10px;color:var(--blue);margin-top:3px;font-weight:700;letter-spacing:.02em;}
+.person-role-tag{
+  margin-left:auto;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  padding:3px 8px;border-radius:5px;flex-shrink:0;
+}
+
+/* ════════════════════════════
+   SLIDE BACKGROUNDS
+════════════════════════════ */
+.bg-white{background:var(--white);}
+.bg-light{background:var(--bg);}
+.bg-blue{background:var(--blue);}
+.bg-navy{background:var(--navy);}
+
+/* ════════════════════════════
+   COVER SLIDES
+════════════════════════════ */
+.cover-slide{flex-direction:row;}
+.cover-left{
+  width:48%;background:linear-gradient(155deg,#EEF3FF 0%,#FFFFFF 70%);
+  display:flex;flex-direction:column;justify-content:center;
+  padding:32px 48px 28px;border-right:2px solid var(--border);position:relative;overflow:hidden;
+}
+.cover-right{width:52%;position:relative;overflow:hidden;}
+.cover-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+.cover-video-ov{position:absolute;inset:0;background:linear-gradient(to right,rgba(255,255,255,.15),transparent 40%);}
+.cover-kicker{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--blue);background:rgba(20,73,191,.07);border:1.5px solid rgba(20,73,191,.18);
+  padding:7px 16px;border-radius:100px;margin-bottom:18px;width:fit-content;
+}
+.cover-kicker-dot{width:7px;height:7px;border-radius:50%;background:var(--blue);}
+.cover-title{font-size:clamp(36px,4.8vw,60px);font-weight:900;line-height:1.0;color:var(--navy);margin-bottom:10px;}
+.cover-title .hl{color:var(--blue);}
+.cover-sub{font-size:15px;color:var(--muted);line-height:1.65;margin-bottom:20px;max-width:400px;}
+.cover-stats{display:grid;grid-template-columns:repeat(4,1fr);border:1.5px solid var(--border);border-radius:10px;overflow:hidden;background:var(--white);box-shadow:0 2px 8px rgba(20,73,191,.06);margin-bottom:10px;}
+.cover-stat{padding:10px 8px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:2px;}
+.cover-stat:last-child{border-right:none;}
+.cover-stat-num{font-size:clamp(15px,1.8vw,20px);font-weight:900;color:var(--blue);line-height:1;}
+.cover-stat-label{font-size:9px;color:var(--muted);font-weight:600;line-height:1.3;}
+.cover-hint{margin-bottom:14px;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;animation:blink 2.5s ease-in-out infinite;display:flex;align-items:center;gap:6px;}
+.cover-hint::after{content:'→';color:var(--blue);}
+
+/* people grid columns */
+.people-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;}
+.people-col{display:flex;flex-direction:column;gap:8px;}
+.people-col-label{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:5px 12px;border-radius:6px;width:fit-content;}
+.person-card-sm{background:var(--white);border:1.5px solid var(--border);border-radius:13px;padding:13px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 6px rgba(20,73,191,.05);}
+.person-avatar-sm{width:42px;height:42px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;}
+.person-name-sm{font-size:13px;font-weight:800;color:var(--navy);line-height:1.2;}
+.person-title-sm{font-size:11px;color:var(--muted);margin-top:2px;}
+@keyframes blink{0%,100%{opacity:.35}50%{opacity:.9}}
+.cover-badge{
+  position:absolute;bottom:22px;right:22px;z-index:3;
+  background:rgba(255,255,255,.94);border:1.5px solid rgba(20,73,191,.2);
+  border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;
+  box-shadow:0 6px 20px rgba(20,73,191,.15);backdrop-filter:blur(10px);
+}
+.cover-badge-icon{width:30px;height:30px;border-radius:8px;background:var(--blue);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cover-badge-title{font-size:11px;font-weight:800;color:var(--navy);}
+.cover-badge-sub{font-size:9px;color:var(--muted);margin-top:1px;}
+
+/* ════════════════════════════
+   GRID CARDS (overview style)
+════════════════════════════ */
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.grid-6{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;}
+
+.ov-card{
+  background:var(--white);border:1.5px solid var(--border);border-radius:14px;
+  padding:20px 18px;display:flex;flex-direction:column;gap:8px;
+  transition:transform .2s,box-shadow .2s;cursor:default;position:relative;overflow:hidden;
+}
+.ov-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(20,73,191,.1);}
+.ov-top-bar{position:absolute;top:0;left:0;right:0;height:3px;}
+.ov-header{display:flex;align-items:center;justify-content:space-between;}
+.ov-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.ov-num{font-size:10px;font-weight:900;letter-spacing:.1em;color:var(--blue);opacity:.3;}
+.ov-title{font-size:13px;font-weight:800;color:var(--navy);}
+.ov-badge{font-size:9px;font-weight:700;padding:3px 9px;border-radius:100px;width:fit-content;}
+.ov-desc{font-size:11.5px;color:var(--muted);line-height:1.5;}
+
+/* ════════════════════════════
+   INFO CARDS (list style)
+════════════════════════════ */
+.info-card{background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:12px;box-shadow:0 2px 6px rgba(20,73,191,.04);}
+.info-card-head{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.info-card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.info-card-title{font-size:13px;font-weight:800;color:var(--navy);}
+.list-items{display:flex;flex-direction:column;gap:6px;}
+.list-item{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--muted);line-height:1.45;}
+.list-dot{width:5px;height:5px;border-radius:50%;background:var(--blue);flex-shrink:0;margin-top:5px;}
+.list-item-arrow{color:var(--blue);font-weight:700;flex-shrink:0;font-size:11px;margin-top:1px;}
+
+/* ════════════════════════════
+   CHECK ROWS
+════════════════════════════ */
+.check-panel{background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:9px;box-shadow:0 2px 6px rgba(20,73,191,.04);}
+.check-panel-title{font-size:14px;font-weight:800;color:var(--navy);margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.check-row{display:flex;align-items:flex-start;gap:10px;padding:9px 12px;border-radius:9px;background:var(--bg);border:1px solid var(--border);}
+.check-row.good{background:rgba(22,163,74,.04);border-color:rgba(22,163,74,.15);}
+.check-row.bad{background:rgba(232,48,74,.04);border-color:rgba(232,48,74,.14);}
+.check-ico{width:20px;height:20px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;margin-top:1px;}
+.check-ico svg{width:12px;height:12px;}
+.check-txt{font-size:11.5px;color:var(--muted);line-height:1.4;}
+.check-txt strong{color:var(--navy);display:block;font-size:12px;font-weight:700;margin-bottom:1px;}
+.target-box{margin-top:auto;padding:14px 18px;border-radius:10px;background:rgba(20,73,191,.05);border:1.5px solid rgba(20,73,191,.18);display:flex;align-items:center;justify-content:space-between;}
+.target-num{font-size:28px;font-weight:900;color:var(--blue);}
+.target-lbl{font-size:10px;color:var(--muted);margin-top:2px;}
+
+/* ════════════════════════════
+   KPI CARDS
+════════════════════════════ */
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;flex:1;margin-top:20px;}
+.kpi-card{background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:22px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 2px 6px rgba(20,73,191,.04);position:relative;overflow:hidden;}
+.kpi-accent{position:absolute;top:0;left:0;right:0;height:3px;}
+.kpi-value{font-size:clamp(34px,3.8vw,48px);font-weight:900;color:var(--blue);line-height:1;}
+.kpi-value sub{font-size:16px;vertical-align:baseline;font-weight:700;color:var(--muted);}
+.kpi-label{font-size:12px;color:var(--muted);line-height:1.5;margin-top:5px;}
+.kpi-bar-bg{height:4px;border-radius:2px;background:var(--bg);margin-top:12px;overflow:hidden;border:1px solid var(--border);}
+.kpi-bar{height:100%;border-radius:2px;transition:width 1.1s cubic-bezier(.22,.84,.44,1) .35s;}
+
+/* ════════════════════════════
+   PRIORITY CARDS
+════════════════════════════ */
+.pri-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;flex:1;margin-top:20px;}
+.pri-card{background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:10px;box-shadow:0 2px 6px rgba(20,73,191,.04);position:relative;overflow:hidden;}
+.pri-accent{position:absolute;top:0;left:0;right:0;height:3px;}
+.pri-label{font-size:9px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;padding:4px 11px;border-radius:100px;width:fit-content;}
+.pri-title{font-size:20px;font-weight:900;color:var(--navy);}
+.pri-items{display:flex;flex-direction:column;gap:6px;}
+.pri-item{font-size:12px;color:var(--muted);display:flex;align-items:flex-start;gap:7px;line-height:1.4;}
+.pri-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.pri-note{margin-top:auto;padding:10px 12px;border-radius:9px;font-size:11.5px;color:var(--muted);line-height:1.5;}
+
+/* ════════════════════════════
+   DISCIPLINE CARDS
+════════════════════════════ */
+.disc-row{display:flex;gap:10px;margin-top:18px;}
+.disc-card{flex:1;background:var(--white);border:1.5px solid var(--border);border-radius:12px;padding:16px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:5px;transition:transform .2s,box-shadow .2s,border-color .2s;cursor:default;box-shadow:0 1px 4px rgba(20,73,191,.04);}
+.disc-card:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(20,73,191,.1);border-color:var(--blue);}
+.disc-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;margin-bottom:2px;}
+.disc-icon svg{width:18px;height:18px;}
+.disc-abbr{font-size:16px;font-weight:900;color:var(--navy);transition:color .2s;}
+.disc-card:hover .disc-abbr{color:var(--blue);}
+.disc-name{font-size:8px;color:var(--muted);line-height:1.3;font-weight:600;}
+
+/* ════════════════════════════
+   FLOW BAR
+════════════════════════════ */
+.flow-bar{display:flex;align-items:center;justify-content:center;gap:0;margin-top:12px;}
+.f-node{background:var(--white);border:1.5px solid var(--border);border-radius:8px;padding:7px 12px;text-align:center;}
+.f-node-lbl{font-size:8px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+.f-node-val{font-size:10px;font-weight:700;color:var(--navy);margin-top:1px;}
+.f-node.hi{background:rgba(20,73,191,.06);border-color:rgba(20,73,191,.3);}
+.f-node.hi .f-node-lbl,.f-node.hi .f-node-val{color:var(--blue);}
+.f-arr{color:var(--border);font-size:13px;padding:0 5px;font-weight:700;}
+
+/* ════════════════════════════
+   ALERT BAR
+════════════════════════════ */
+.alert-bar{background:rgba(232,48,74,.04);border:1.5px solid rgba(232,48,74,.14);border-radius:11px;padding:12px 18px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;}
+.alert-item{display:flex;align-items:flex-start;gap:6px;font-size:11px;color:var(--red);font-weight:600;}
+.alert-item svg{width:13px;height:13px;flex-shrink:0;margin-top:1px;}
+
+/* ════════════════════════════
+   CRITERIA GRID
+════════════════════════════ */
+.crit-section{margin-top:18px;}
+.crit-title{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.crit-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
+.crit-card{background:var(--white);border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--navy);font-weight:500;box-shadow:0 1px 3px rgba(20,73,191,.03);}
+.crit-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.crit-card.hi{border-color:rgba(20,73,191,.28);background:rgba(20,73,191,.04);}
+.crit-card.hi .crit-txt{color:var(--blue);font-weight:700;}
+
+/* ════════════════════════════
+   THANK YOU PAGE
+════════════════════════════ */
+.ty-slide{background:var(--white);overflow:hidden;}
+.ty-left{
+  width:45%;background:var(--blue);
+  display:flex;flex-direction:column;justify-content:center;
+  padding:48px 52px;position:relative;overflow:hidden;
+}
+.ty-left::after{content:'';position:absolute;bottom:-90px;right:-90px;width:260px;height:260px;border-radius:50%;background:rgba(255,255,255,.07);}
+.ty-left::before{content:'';position:absolute;top:-50px;left:-50px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.05);}
+.ty-logo{height:110px;object-fit:contain;display:block;filter:brightness(0) invert(1);margin-bottom:24px;position:relative;z-index:1;}
+.ty-logo-fb{font-size:22px;font-weight:900;color:var(--white);margin-bottom:28px;position:relative;z-index:1;}
+.ty-big{font-size:clamp(40px,6vw,64px);font-weight:900;color:var(--white);line-height:1.0;margin-bottom:10px;position:relative;z-index:1;}
+.ty-big .hl{color:var(--mint);}
+.ty-aq{font-size:18px;font-weight:700;color:rgba(255,255,255,.7);margin-bottom:28px;position:relative;z-index:1;}
+.ty-people{display:flex;flex-direction:column;gap:10px;position:relative;z-index:1;}
+.ty-person{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:12px;padding:12px 16px;}
+.ty-avatar{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:var(--blue);background:var(--white);flex-shrink:0;}
+.ty-pname{font-size:13px;font-weight:800;color:var(--white);}
+.ty-ptitle{font-size:10px;color:rgba(255,255,255,.55);margin-top:1px;}
+.ty-porg{font-size:10px;color:var(--mint);margin-top:2px;font-weight:700;}
+
+.ty-right{
+  flex:1;background:linear-gradient(155deg,#F4F6FC 0%,#FFFFFF 100%);
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  text-align:center;padding:52px 60px;
+}
+.ty-eyebrow{font-size:10px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--blue);margin-bottom:14px;}
+.ty-tagline{font-size:clamp(32px,4.5vw,54px);font-weight:900;color:var(--navy);line-height:1.08;margin-bottom:12px;}
+.ty-tagline .hl{color:var(--blue);}
+.ty-desc{font-size:14px;color:var(--muted);max-width:380px;line-height:1.65;margin-bottom:24px;}
+.ty-pills{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:24px;}
+.ty-pill{background:rgba(20,73,191,.07);border:1.5px solid rgba(20,73,191,.18);color:var(--blue);font-size:11px;font-weight:700;padding:7px 15px;border-radius:100px;transition:all .2s;}
+.ty-pill:hover{background:var(--blue);color:var(--white);}
+.ty-contact{display:flex;gap:0;background:var(--white);border:1.5px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(20,73,191,.07);}
+.ty-contact-item{padding:14px 24px;display:flex;flex-direction:column;align-items:center;gap:2px;border-right:1px solid var(--border);}
+.ty-contact-item:last-child{border-right:none;}
+.ty-contact-lbl{font-size:8px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;}
+.ty-contact-val{font-size:11.5px;font-weight:700;color:var(--navy);}
+.ty-contact-val a{color:var(--blue);text-decoration:none;}
+.ty-contact-val a:hover{text-decoration:underline;}
+.cert-badges{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:20px;padding:16px 24px;background:var(--white);border:1.5px solid var(--border);border-radius:14px;box-shadow:0 2px 10px rgba(20,73,191,.06);}
+.cert-badge{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.cert-badge img{height:58px;object-fit:contain;}
+.cert-badge-label{font-size:9px;font-weight:700;color:var(--muted);text-align:center;letter-spacing:.04em;}
+
+/* ════════════════════════════
+   ROLE OVERVIEW SLIDE
+════════════════════════════ */
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;flex:1;}
+.role-card{background:var(--white);border:1.5px solid var(--border);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:10px;box-shadow:0 2px 6px rgba(20,73,191,.04);}
+.role-card-head{display:flex;align-items:center;gap:10px;}
+.role-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.role-icon svg{width:18px;height:18px;}
+.role-title{font-size:13px;font-weight:800;color:var(--navy);}
+.role-desc{font-size:12px;color:var(--muted);line-height:1.55;}
+
+/* ════════════════════════════
+   VIDEO INTRO SLIDE
+════════════════════════════ */
+.vid-slide{background:var(--navy);overflow:hidden;}
+.vid-left{
+  width:35%;display:flex;flex-direction:column;justify-content:center;
+  padding:52px 40px;position:relative;z-index:2;
+  background:linear-gradient(155deg,#111B2E 0%,#0E172A 100%);
+  border-right:1px solid rgba(255,255,255,.08);
+}
+.vid-eyebrow{font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--blue);margin-bottom:16px;}
+.vid-title{font-size:clamp(24px,3vw,38px);font-weight:900;color:var(--white);line-height:1.1;margin-bottom:18px;}
+.vid-title .hl{color:var(--mint);}
+.vid-desc{font-size:14px;color:rgba(255,255,255,.55);line-height:1.75;margin-bottom:32px;}
+.vid-play-btn{
+  display:inline-flex;align-items:center;gap:12px;
+  background:var(--blue);color:var(--white);border:none;cursor:pointer;
+  font-family:'Inter',sans-serif;font-size:14px;font-weight:700;
+  padding:14px 28px;border-radius:12px;transition:all .25s;width:fit-content;
+  position:relative;overflow:hidden;
+}
+.vid-play-btn:hover{background:var(--blue2);transform:translateY(-2px);box-shadow:0 8px 24px rgba(20,73,191,.4);}
+.vid-play-btn svg{flex-shrink:0;transition:transform .3s ease,opacity .2s ease;}
+.vid-play-btn.playing{background:linear-gradient(135deg,#1449BF,#0A3A9F);box-shadow:0 0 0 3px rgba(20,73,191,.35);}
+.vid-play-btn.playing:hover{box-shadow:0 8px 24px rgba(20,73,191,.4),0 0 0 3px rgba(20,73,191,.35);}
+
+/* icon swap animation */
+.vid-play-btn .btn-icon{position:relative;width:18px;height:18px;flex-shrink:0;}
+.vid-play-btn .btn-icon svg{position:absolute;top:0;left:0;transition:opacity .2s ease,transform .25s ease;}
+.vid-play-btn .btn-icon .icon-play{opacity:1;transform:scale(1);}
+.vid-play-btn .btn-icon .icon-pause{opacity:0;transform:scale(0.6);}
+.vid-play-btn.playing .btn-icon .icon-play{opacity:0;transform:scale(0.6);}
+.vid-play-btn.playing .btn-icon .icon-pause{opacity:1;transform:scale(1);}
+
+/* pulse ring when playing */
+.vid-play-btn.playing::before{
+  content:'';position:absolute;inset:-3px;border-radius:15px;
+  border:2px solid rgba(255,255,255,.35);
+  animation:btn-pulse 1.6s ease-out infinite;
+}
+@keyframes btn-pulse{0%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(1.08)}}
+
+/* press pop */
+.vid-play-btn:active{transform:scale(.96) translateY(0)!important;}
+
+@keyframes spin-icon{0%{transform:scale(0) rotate(-90deg)}60%{transform:scale(1.2) rotate(5deg)}100%{transform:scale(1) rotate(0deg)}}
+
+/* ripple on click */
+.vid-play-btn .ripple{
+  position:absolute;border-radius:50%;
+  background:rgba(255,255,255,.35);
+  transform:scale(0);animation:ripple-anim .55s linear;
+  pointer-events:none;
+}
+@keyframes ripple-anim{to{transform:scale(4);opacity:0}}
+
+/* bars animation when playing */
+.vid-bars{display:flex;align-items:flex-end;gap:2px;height:14px;flex-shrink:0;}
+.vid-bars span{width:3px;border-radius:2px;background:var(--white);display:block;}
+.vid-bars span:nth-child(1){height:6px;animation:bar1 .8s ease-in-out infinite;}
+.vid-bars span:nth-child(2){height:10px;animation:bar2 .8s ease-in-out infinite .15s;}
+.vid-bars span:nth-child(3){height:7px;animation:bar3 .8s ease-in-out infinite .3s;}
+@keyframes bar1{0%,100%{height:4px}50%{height:13px}}
+@keyframes bar2{0%,100%{height:10px}50%{height:5px}}
+@keyframes bar3{0%,100%{height:7px}50%{height:13px}}
+
+.vid-right{flex:1;position:relative;background:#000;display:flex;align-items:center;justify-content:center;}
+.vid-player{width:100%;height:100%;object-fit:contain;display:block;background:var(--navy);}
+.vid-overlay{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:20px;
+  background:rgba(8,16,30,.65);backdrop-filter:blur(4px);
+  transition:opacity .4s ease;cursor:pointer;
+}
+.vid-overlay.hidden{opacity:0;pointer-events:none;}
+
+/* ── VIDEO CONTROLS BAR ── */
+.vid-controls{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:10px 16px 12px;
+  background:linear-gradient(to top,rgba(8,16,30,.92) 0%,transparent 100%);
+  display:flex;flex-direction:column;gap:8px;
+  z-index:10;opacity:0;transition:opacity .25s ease;
+}
+.vid-right:hover .vid-controls,.vid-controls:focus-within{opacity:1;}
+.vid-controls.always-show{opacity:1;}
+
+/* scrubber */
+.vid-scrubber{
+  width:100%;height:4px;border-radius:2px;
+  background:rgba(255,255,255,.25);cursor:pointer;
+  appearance:none;-webkit-appearance:none;outline:none;
+  transition:height .15s;
+}
+.vid-scrubber:hover{height:6px;}
+.vid-scrubber::-webkit-slider-thumb{
+  -webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+  background:var(--blue);cursor:pointer;margin-top:-5px;
+  box-shadow:0 0 0 3px rgba(20,73,191,.4);
+  transition:transform .15s;
+}
+.vid-scrubber:hover::-webkit-slider-thumb{transform:scale(1.2);}
+.vid-scrubber::-webkit-slider-runnable-track{
+  height:4px;border-radius:2px;background:transparent;
+}
+/* filled track via CSS variable */
+.vid-scrubber{
+  background:linear-gradient(to right,var(--blue) var(--pct,0%),rgba(255,255,255,.25) var(--pct,0%));
+}
+
+/* bottom row */
+.vid-ctrl-row{display:flex;align-items:center;gap:10px;}
+.vid-ctrl-btn{
+  background:none;border:none;cursor:pointer;color:#fff;
+  width:32px;height:32px;display:flex;align-items:center;justify-content:center;
+  border-radius:8px;transition:background .15s,transform .1s;padding:0;flex-shrink:0;
+}
+.vid-ctrl-btn:hover{background:rgba(255,255,255,.15);}
+.vid-ctrl-btn:active{transform:scale(.9);}
+.vid-time{font-size:11px;font-weight:600;color:rgba(255,255,255,.7);font-family:'Inter',sans-serif;white-space:nowrap;margin-left:2px;}
+.vid-vol{width:60px;height:3px;border-radius:2px;appearance:none;-webkit-appearance:none;outline:none;cursor:pointer;background:linear-gradient(to right,rgba(255,255,255,.8) 80%,rgba(255,255,255,.25) 80%);}
+.vid-vol::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;border-radius:50%;background:#fff;cursor:pointer;}
+.vid-fullscreen-btn{margin-left:auto;}
+.vid-play-circle{
+  width:80px;height:80px;border-radius:50%;
+  background:var(--blue);display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 0 12px rgba(20,73,191,.2),0 0 0 24px rgba(20,73,191,.08);
+  transition:transform .2s,box-shadow .2s;
+}
+.vid-overlay:hover .vid-play-circle{transform:scale(1.1);box-shadow:0 0 0 16px rgba(20,73,191,.25),0 0 0 32px rgba(20,73,191,.1);}
+.vid-overlay-label{font-size:13px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.06em;}
+
+/* ── particles ── */
+#particles{position:fixed;inset:0;pointer-events:none;z-index:0;}
+</style>
+</head>
+<body>
+<canvas id="particles"></canvas>
+<div class="cursor" id="cursor"></div>
+<div class="progress" id="progress"></div>
+
+<!-- ══ TOP BAR ══ -->
+<div class="top-bar">
+  <div class="tb-left">
+    <img class="tb-logo" id="topLogo"
+      src="https://www.growedgex.com/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdaxjhteb5%2Fimage%2Fupload%2Fv1776130636%2FGrowedge_white_background-removebg-preview_st7inq_uxjysc.webp&w=1920&q=75"
+      alt="GrowEdgeX" onerror="this.style.display='none';document.getElementById('logoFb').style.display='block'">
+    <span id="logoFb" class="tb-logo-text" style="display:none">GrowEdge<span>X</span></span>
+    <div class="tb-div"></div>
+    <span class="tb-subtitle" id="tbSubtitle">Home Health Intake Coordinator</span>
+  </div>
+  <div class="deck-switcher">
+    <button class="ds-btn active" onclick="switchDeck(1)">Intake Coordinator</button>
+    <button class="ds-btn" onclick="switchDeck(2)">Patient Care Coordinator</button>
+  </div>
+  <div class="tb-right">
+    <span class="tb-for">Presenting to</span>
+    <span class="tb-client">Donovan Miske & Nancy Kristin — Kona Medical</span>
+    <span class="tb-badge">Confidential</span>
+  </div>
+</div>
+
+<!-- ══ DECK ══ -->
+<div id="deck">
+
+<!-- ╔══════════════════════════════════════╗ -->
+<!-- ║  DECK 1: HOME HEALTH INTAKE COORDINATOR  ║ -->
+<!-- ╚══════════════════════════════════════╝ -->
+
+<!-- D1 S1: COVER -->
+<div class="slide cover-slide active" data-deck="1" data-index="0">
+  <div class="cover-left">
+    <div class="cover-kicker anim d1"><div class="cover-kicker-dot"></div>GrowEdgeX · Workflow Standards</div>
+    <h1 class="cover-title anim d2">Home Health<br><span class="hl">Intake</span><br>Coordinator</h1>
+    <p class="cover-sub anim d3">Workflow standards, responsibilities, and performance expectations for the central coordination role in home health admissions.</p>
+    <div class="cover-hint anim d5">Click anywhere to advance</div>
+    <!-- People grid: Col 1 = GrowEdgeX, Col 2 = Kona Medical -->
+    <div class="people-grid anim d6">
+      <div class="people-col">
+        <div class="people-col-label" style="background:rgba(20,73,191,.08);color:var(--blue)">Presenting</div>
+        <div class="person-card-sm">
+          <div class="person-avatar-sm" style="background:var(--blue);color:var(--white)">DJ</div>
+          <div>
+            <div class="person-name-sm">Dan Jones</div>
+            <div class="person-title-sm">Presenter · GrowEdgeX</div>
+          </div>
+        </div>
+        <div class="person-card-sm">
+          <div class="person-avatar-sm" style="background:var(--blue-dark);color:var(--white)">AA</div>
+          <div>
+            <div class="person-name-sm">Ahmed Azhar</div>
+            <div class="person-title-sm">CEO · GrowEdgeX</div>
+          </div>
+        </div>
+        <!-- GrowEdgeX badge -->
+        <div style="display:flex;align-items:center;gap:9px;background:rgba(20,73,191,.05);border:1.5px solid rgba(20,73,191,.2);border-radius:9px;padding:7px 12px 7px 7px;margin-top:2px;box-shadow:0 2px 6px rgba(20,73,191,.08);">
+          <div style="background:var(--white);border:1.5px solid rgba(20,73,191,.15);border-radius:6px;padding:4px 6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;width:80px;height:36px;">
+            <img src="https://www.growedgex.com/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdaxjhteb5%2Fimage%2Fupload%2Fv1776130636%2FGrowedge_white_background-removebg-preview_st7inq_uxjysc.webp&w=1920&q=75" style="height:28px;width:100%;object-fit:contain;display:block;" alt="GrowEdgeX">
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:800;color:var(--navy);line-height:1.2;">GrowEdgeX</div>
+            <div style="font-size:9px;color:var(--muted);margin-top:1px;">growedgex.com</div>
+          </div>
+        </div>
+      </div>
+      <div class="people-col">
+        <div class="people-col-label" style="background:rgba(0,200,150,.08);color:var(--mint)">Presented To</div>
+        <div class="person-card-sm">
+          <div class="person-avatar-sm" style="background:var(--mint);color:var(--navy)">DM</div>
+          <div>
+            <div class="person-name-sm">Donovan Miske</div>
+            <div class="person-title-sm">CEO · Kona Medical</div>
+          </div>
+        </div>
+        <div class="person-card-sm">
+          <div class="person-avatar-sm" style="background:var(--sky);color:var(--white)">NK</div>
+          <div>
+            <div class="person-name-sm">Nancy Kristin</div>
+            <div class="person-title-sm">HR Director · Kona Medical</div>
+          </div>
+        </div>
+        <!-- Kona Medical badge -->
+        <div style="display:flex;align-items:center;gap:9px;background:rgba(1,109,94,.05);border:1.5px solid rgba(1,109,94,.2);border-radius:9px;padding:7px 12px 7px 7px;margin-top:2px;box-shadow:0 2px 6px rgba(1,109,94,.08);">
+          <div style="background:#016D5E;border-radius:6px;padding:4px 6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;width:80px;height:36px;">
+            <img src="https://kona-medical-consulting-v1778735737.websitepro-cdn.com/wp-content/uploads/2023/06/footer-logo.png" style="height:28px;width:100%;object-fit:contain;display:block;" alt="Kona Medical">
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:800;color:var(--navy);line-height:1.2;">Kona Medical</div>
+            <div style="font-size:9px;color:var(--muted);margin-top:1px;">konamedicalconsulting.com</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="cover-right">
+    <video class="cover-video" autoplay muted loop playsinline>
+      <source src="https://res.cloudinary.com/daxjhteb5/video/upload/v1772645094/WEB_HERO_nunlaa.mp4" type="video/mp4">
+    </video>
+    <div class="cover-video-ov"></div>
+    <!-- Kona Medical logo badge -->
+    <div class="cover-badge anim d7">
+      <div class="cover-badge-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div>
+        <div class="cover-badge-title">Verified Partner</div>
+        <div class="cover-badge-sub">Trusted Since 2020 · growedgex.com</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- D1 S2: VIDEO INTRO -->
+<div class="slide vid-slide" data-deck="1" data-index="1" style="display:flex">
+  <div class="vid-left">
+
+    <h2 class="vid-title anim d2">Inside Our<br><span class="hl">Workflow</span></h2>
+    <p class="vid-desc anim d3">Before we dive into the demo, please take a moment to watch this brief overview. This video captures our core vision and showcases how we are transforming the intake experience to match the speed, precision, and polish expected by today's leading healthcare organizations.</p>
+    <button class="vid-play-btn anim d4" id="btn-vid1" onclick="playVid('vid1')">
+      <span class="btn-icon">
+        <svg class="icon-play" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <svg class="icon-pause" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+      </span>
+      <span class="btn-label">Play Overview Video</span>
+    </button>
+  </div>
+  <div class="vid-right">
+    <video id="vid1" class="vid-player" preload="metadata" playsinline>
+      <source src="https://res.cloudinary.com/dax18qmve/video/upload/v1780445037/Growedgex_video_1_1_j0uc6o.mp4" type="video/mp4">
+    </video>
+    <div class="vid-overlay" id="vid1-ov" onclick="playVid('vid1')">
+      <div class="vid-play-circle">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      </div>
+      <div class="vid-overlay-label">Click to Play</div>
+    </div>
+    <div class="vid-controls" id="ctrl-vid1">
+      <input type="range" class="vid-scrubber" id="scrub-vid1" min="0" max="100" value="0" step="0.1"
+        oninput="scrubVid('vid1',this.value)" onmousedown="vidScrubStart('vid1')" onmouseup="vidScrubEnd('vid1')">
+      <div class="vid-ctrl-row">
+        <button class="vid-ctrl-btn" onclick="skipVid('vid1',-10)" title="Back 10s">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.32"/><text x="7" y="15" font-size="6" fill="currentColor" stroke="none" font-family="Inter,sans-serif" font-weight="700">10</text></svg>
+        </button>
+        <button class="vid-ctrl-btn" onclick="playVid('vid1')" id="ctrl-play-vid1" title="Play/Pause">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </button>
+        <button class="vid-ctrl-btn" onclick="skipVid('vid1',10)" title="Forward 10s">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-3.32"/><text x="7" y="15" font-size="6" fill="currentColor" stroke="none" font-family="Inter,sans-serif" font-weight="700">10</text></svg>
+        </button>
+        <span class="vid-time" id="time-vid1">0:00 / 0:00</span>
+        <input type="range" class="vid-vol" id="vol-vid1" min="0" max="1" step="0.05" value="1" oninput="setVol('vid1',this.value)" title="Volume">
+        <button class="vid-ctrl-btn vid-fullscreen-btn" onclick="fsVid('vid1')" title="Fullscreen">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- D1 S3: ROLE OVERVIEW -->
+<div class="slide bg-light" data-deck="1" data-index="1" style="flex-direction:column">
+  <div class="pad">
+    <div class="eyebrow anim d1">Role Overview</div>
+    <div class="s-head anim d2">What Does an <span class="hl">Intake Coordinator</span> Do?</div>
+    <div class="role-grid">
+      <div class="role-card anim d3">
+        <div class="role-card-head">
+          <div class="role-icon" style="background:rgba(20,73,191,.08)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </div>
+          <div class="role-title">Central Coordination Hub</div>
+        </div>
+        <div class="role-desc">Serves as the primary point of coordination between referral sources, clients, caregivers, clinicians, physicians, and internal teams — ensuring nothing falls through the cracks.</div>
+      </div>
+      <div class="role-card anim d4">
+        <div class="role-card-head">
+          <div class="role-icon" style="background:rgba(0,200,150,.08)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--mint)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          </div>
+          <div class="role-title">End-to-End Referral Management</div>
+        </div>
+        <div class="role-desc">Manages every referral from receipt through admission — including intake, eligibility verification, clinician assignment, documentation transfer, and client communication.</div>
+      </div>
+      <div class="role-card anim d5">
+        <div class="role-card-head">
+          <div class="role-icon" style="background:rgba(245,168,0,.08)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+          <div class="role-title">Regulatory & Payer Compliance</div>
+        </div>
+        <div class="role-desc">Ensures all processes adhere to regulatory requirements, payer-specific admission standards, and agency policies — protecting the organization from compliance risk.</div>
+      </div>
+      <div class="role-card anim d6">
+        <div class="role-card-head">
+          <div class="role-icon" style="background:rgba(232,48,74,.08)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div class="role-title">Proactive Escalation</div>
+        </div>
+        <div class="role-desc">Identifies and escalates barriers immediately — clinician unavailability, authorization delays, insurance issues, or any threat to timely and safe admission of the client.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- D1 S3: 6-STAGE OVERVIEW -->
+<div class="slide bg-light" data-deck="1" data-index="2" style="flex-direction:column">
+  <div class="pad">
+    <div class="eyebrow anim d1">Process Overview</div>
+    <div class="s-head anim d2">Six-Stage <span class="hl">Intake Workflow</span></div>
+    <div class="grid-3" style="flex:1">
+      <div class="ov-card anim d3"><div class="ov-top-bar" style="background:var(--blue)"></div><div class="ov-header"><div class="ov-icon" style="background:rgba(20,73,191,.08)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div><div class="ov-num">01</div></div><div class="ov-title">Patient Care Coordinator</div><div class="ov-badge" style="background:rgba(20,73,191,.08);color:var(--blue)">⏱ 2 min</div><div class="ov-desc">Enter system, assign case ID, acknowledge receipt, set priority level</div></div>
+      <div class="ov-card anim d4"><div class="ov-top-bar" style="background:var(--mint)"></div><div class="ov-header"><div class="ov-icon" style="background:rgba(0,200,150,.08)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--mint)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div><div class="ov-num">02</div></div><div class="ov-title">Eligibility & Insurance</div><div class="ov-badge" style="background:rgba(0,200,150,.08);color:var(--mint)">⏱ 30 min</div><div class="ov-desc">Clinical eligibility, benefits verification, authorization management</div></div>
+      <div class="ov-card anim d5"><div class="ov-top-bar" style="background:var(--amber)"></div><div class="ov-header"><div class="ov-icon" style="background:rgba(245,168,0,.08)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/><line x1="20" y1="8" x2="20" y2="14"/></svg></div><div class="ov-num">03</div></div><div class="ov-title">Clinician Assignment</div><div class="ov-badge" style="background:rgba(245,168,0,.08);color:var(--amber)">⏱ 25 min</div><div class="ov-desc">Match discipline, schedule SOC visit within payer timeframes</div></div>
+      <div class="ov-card anim d6"><div class="ov-top-bar" style="background:var(--sky)"></div><div class="ov-header"><div class="ov-icon" style="background:rgba(0,153,221,.08)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--sky)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></div><div class="ov-num">04</div></div><div class="ov-title">Clinical Info Transfer</div><div class="ov-badge" style="background:rgba(0,153,221,.08);color:var(--sky)">HIPAA Docs</div><div class="ov-desc">Full documentation handoff to clinician, confirmed in system</div></div>
+      <div class="ov-card anim d7"><div class="ov-top-bar" style="background:var(--purple)"></div><div class="ov-header"><div class="ov-icon" style="background:rgba(108,99,255,.08)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13.5a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.76a2.16 2.16 0 0 1 .59-.11h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div><div class="ov-num">05</div></div><div class="ov-title">Client Communication</div><div class="ov-badge" style="background:rgba(108,99,255,.08);color:var(--purple)">Follow-Up</div><div class="ov-desc">Intro call, appointment confirmation, post-SOC monitoring</div></div>
+      <div class="ov-card anim d8"><div class="ov-top-bar" style="background:var(--red)"></div><div class="ov-header"><div class="ov-icon" style="background:rgba(232,48,74,.08)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div class="ov-num">06</div></div><div class="ov-title">Prioritization & Escalation</div><div class="ov-badge" style="background:rgba(232,48,74,.08);color:var(--red)">P1/P2/P3</div><div class="ov-desc">Urgent → Time-Sensitive → Routine with immediate escalation</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- D1 S4: KPIs -->
+<div class="slide bg-light" data-deck="1" data-index="3" style="flex-direction:column">
+  <div class="pad">
+    <div class="eyebrow anim d1">Core Performance Expectations</div>
+    <div class="s-head anim d2"><span class="hl">KPIs</span> & Standards</div>
+    <div class="kpi-grid">
+      <div class="kpi-card anim d3"><div class="kpi-accent" style="background:var(--blue)"></div><div><div class="kpi-value">≤2<sub>min</sub></div><div class="kpi-label">Referral acknowledgement time from receipt</div></div><div class="kpi-bar-bg"><div class="kpi-bar" style="width:0%;background:var(--blue)" data-w="96%"></div></div></div>
+      <div class="kpi-card anim d4"><div class="kpi-accent" style="background:var(--mint)"></div><div><div class="kpi-value" style="color:var(--mint)">≤30<sub>min</sub></div><div class="kpi-label">Eligibility & insurance verification completion</div></div><div class="kpi-bar-bg"><div class="kpi-bar" style="width:0%;background:var(--mint)" data-w="88%"></div></div></div>
+      <div class="kpi-card anim d5"><div class="kpi-accent" style="background:var(--amber)"></div><div><div class="kpi-value" style="color:var(--amber)">≤25<sub>min</sub></div><div class="kpi-label">Clinician assignment after eligibility clearance</div></div><div class="kpi-bar-bg"><div class="kpi-bar" style="width:0%;background:var(--amber)" data-w="82%"></div></div></div>
+      <div class="kpi-card anim d6"><div class="kpi-accent" style="background:var(--sky)"></div><div><div class="kpi-value" style="color:var(--sky)">3<sub>×</sub></div><div class="kpi-label">Minimum documented outreach attempts before escalation</div></div><div class="kpi-bar-bg"><div class="kpi-bar" style="width:0%;background:var(--sky)" data-w="100%"></div></div></div>
+      <div class="kpi-card anim d7"><div class="kpi-accent" style="background:var(--red)"></div><div><div class="kpi-value" style="color:var(--red)">2<sub>hr</sub></div><div class="kpi-label">Maximum call return time during business hours</div></div><div class="kpi-bar-bg"><div class="kpi-bar" style="width:0%;background:var(--red)" data-w="90%"></div></div></div>
+      <div class="kpi-card anim d8"><div class="kpi-accent" style="background:var(--green)"></div><div><div class="kpi-value" style="color:var(--green)">100<sub>%</sub></div><div class="kpi-label">HIPAA-compliant documentation transfer — no exceptions</div></div><div class="kpi-bar-bg"><div class="kpi-bar" style="width:0%;background:var(--green)" data-w="100%"></div></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- D1 S5: ESCALATION -->
+<div class="slide bg-light" data-deck="1" data-index="4" style="flex-direction:column">
+  <div class="pad">
+    <div class="eyebrow anim d1">Escalation Framework</div>
+    <div class="s-head anim d2">When to <span class="hl">Escalate Immediately</span></div>
+    <div class="grid-2" style="flex:1">
+      <div class="check-panel anim d3">
+        <div class="check-panel-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Clinical & Admission Triggers
+        </div>
+        <div class="check-row bad"><div class="check-ico" style="background:rgba(232,48,74,.12);color:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><div class="check-txt"><strong>No Clinician Available</strong>No qualified clinician available for required admission</div></div>
+        <div class="check-row bad"><div class="check-ico" style="background:rgba(232,48,74,.12);color:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><div class="check-txt"><strong>SOC Deadline at Risk</strong>Start of Care deadlines cannot be met without intervention</div></div>
+        <div class="check-row bad"><div class="check-ico" style="background:rgba(232,48,74,.12);color:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><div class="check-txt"><strong>Client Condition Deteriorates</strong>Clinical status changes requiring urgent care response</div></div>
+        <div class="check-row bad"><div class="check-ico" style="background:rgba(232,48,74,.12);color:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><div class="check-txt"><strong>Compliance / Safety Concern</strong>Any safety or safeguarding issue is identified</div></div>
+      </div>
+      <div class="check-panel anim d4">
+        <div class="check-panel-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Payer & Access Triggers
+        </div>
+        <div class="check-row bad"><div class="check-ico" style="background:rgba(232,48,74,.12);color:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><div class="check-txt"><strong>Authorization Denied</strong>Insurance authorization denied or significantly delayed</div></div>
+        <div class="check-row bad"><div class="check-ico" style="background:rgba(232,48,74,.12);color:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><div class="check-txt"><strong>Physician Orders Delayed</strong>Physician orders not received within required timeframes</div></div>
+        <div class="check-row bad"><div class="check-ico" style="background:rgba(232,48,74,.12);color:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><div class="check-txt"><strong>Client Unreachable × 3</strong>Three documented outreach attempts with no response</div></div>
+        <div class="check-row bad"><div class="check-ico" style="background:rgba(232,48,74,.12);color:var(--red)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><div class="check-txt"><strong>Continuity of Care Threat</strong>Any issue threatening timely admission or care transition</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- D1 S6: THANK YOU -->
+<div class="slide ty-slide" data-deck="1" data-index="5">
+  <div class="ty-left">
+    <img class="ty-logo anim d1"
+      src="https://www.growedgex.com/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdaxjhteb5%2Fimage%2Fupload%2Fv1776130636%2FGrowedge_white_background-removebg-preview_st7inq_uxjysc.webp&w=1920&q=75"
+      alt="GrowEdgeX" onerror="this.style.display='none';document.getElementById('tyFb1').style.display='block'">
+    <span id="tyFb1" class="ty-logo-fb" style="display:none">GrowEdge<span style="color:var(--mint)">X</span></span>
+    <div class="ty-big anim d2">Thank<br>You.<br><span class="hl">Questions?</span></div>
+    <div class="ty-people anim d3">
+      <div class="ty-person">
+        <div class="ty-avatar" style="color:var(--mint)">DM</div>
+        <div>
+          <div class="ty-pname">Donovan Miske</div>
+          <div class="ty-ptitle">Chief Executive Officer</div>
+          <div class="ty-porg" style="color:rgba(255,255,255,.5)">Kona Medical Consulting</div>
+        </div>
+      </div>
+      <div class="ty-person">
+        <div class="ty-avatar" style="color:var(--sky)">NK</div>
+        <div>
+          <div class="ty-pname">Nancy Kristin</div>
+          <div class="ty-ptitle">Human Resources Director</div>
+          <div class="ty-porg" style="color:rgba(255,255,255,.5)">Kona Medical Consulting</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="ty-right">
+    <div class="ty-eyebrow anim d1">Home Health Intake Coordinator</div>
+    <div class="ty-tagline anim d2">Home Health<br><span class="hl">Intake Coordinator</span></div>
+    <p class="ty-desc anim d3">We're committed to timely, compliant, and client-centered admissions — every step of the way. Switch to Deck 2 to explore Patient Care Coordinator in detail.</p>
+    <div class="ty-pills anim d4">
+      <div class="ty-pill">✦ Regulatory Compliant</div>
+      <div class="ty-pill">✦ Client-Centered</div>
+      <div class="ty-pill">✦ HIPAA Secure</div>
+      <div class="ty-pill">✦ Trusted Since 2020</div>
+    </div>
+    <div class="ty-contact anim d5">
+      <div class="ty-contact-item"><div class="ty-contact-lbl">Phone</div><div class="ty-contact-val"><a href="tel:+14699292524">+1 (469) 929-2524</a></div></div>
+      <div class="ty-contact-item"><div class="ty-contact-lbl">Email</div><div class="ty-contact-val"><a href="mailto:admin@growedgex.com">admin@growedgex.com</a></div></div>
+      <div class="ty-contact-item"><div class="ty-contact-lbl">Website</div><div class="ty-contact-val"><a href="https://growedgex.com" target="_blank">growedgex.com</a></div></div>
+    </div>
+    <div class="cert-badges anim d6">
+      <div class="cert-badge">
+        <img src="https://res.cloudinary.com/dax18qmve/image/upload/v1780440638/iso-27001-standard-certificate-badge-information-security-management_274258-274_m1dae8.png" alt="ISO 27001">
+        <div class="cert-badge-label">ISO 27001</div>
+      </div>
+      <div style="width:1px;height:50px;background:var(--border)"></div>
+      <div class="cert-badge">
+        <img src="https://res.cloudinary.com/dax18qmve/image/upload/v1780440546/27001-removebg-preview_uso2zj.png" alt="ISO 9001">
+        <div class="cert-badge-label">ISO 9001</div>
+      </div>
+      <div style="width:1px;height:50px;background:var(--border)"></div>
+      <div class="cert-badge">
+        <img src="https://res.cloudinary.com/dax18qmve/image/upload/v1780440938/download_kewt2q.png" alt="HIPAA Compliant">
+        <div class="cert-badge-label">HIPAA Compliant</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════╗ -->
+<!-- ║  DECK 2: REFERRAL INTAKE             ║ -->
+<!-- ╚══════════════════════════════════════╝ -->
+
+<!-- D2 S1: COVER -->
+<div class="slide cover-slide" data-deck="2" data-index="0" style="display:none">
+  <div class="cover-left">
+    <div class="cover-kicker anim d1"><div class="cover-kicker-dot"></div>GrowEdgeX · Intake Process</div>
+    <h1 class="cover-title anim d2"><span class="hl">Patient Care</span><br>Coordinator</h1>
+    <p class="cover-sub anim d3">A detailed walkthrough of the patient care coordinator workflow — from first referral receipt through Start of Care scheduling and clinical handoff.</p>
+    <div class="cover-hint anim d5">Click anywhere to advance</div>
+    <!-- People grid: Col 1 = GrowEdgeX, Col 2 = Kona Medical -->
+    <div class="people-grid anim d6">
+      <div class="people-col">
+        <div class="people-col-label" style="background:rgba(20,73,191,.08);color:var(--blue)">Presenting</div>
+        <div class="person-card-sm">
+          <div class="person-avatar-sm" style="background:var(--blue);color:var(--white)">DJ</div>
+          <div>
+            <div class="person-name-sm">Dan Jones</div>
+            <div class="person-title-sm">Presenter · GrowEdgeX</div>
+          </div>
+        </div>
+        <div class="person-card-sm">
+          <div class="person-avatar-sm" style="background:var(--blue-dark);color:var(--white)">AA</div>
+          <div>
+            <div class="person-name-sm">Ahmed Azhar</div>
+            <div class="person-title-sm">CEO · GrowEdgeX</div>
+          </div>
+        </div>
+        <!-- GrowEdgeX badge -->
+        <div style="display:flex;align-items:center;gap:9px;background:rgba(20,73,191,.05);border:1.5px solid rgba(20,73,191,.2);border-radius:9px;padding:7px 12px 7px 7px;margin-top:2px;box-shadow:0 2px 6px rgba(20,73,191,.08);">
+          <div style="background:var(--white);border:1.5px solid rgba(20,73,191,.15);border-radius:6px;padding:4px 6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;width:80px;height:36px;">
+            <img src="https://www.growedgex.com/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdaxjhteb5%2Fimage%2Fupload%2Fv1776130636%2FGrowedge_white_background-removebg-preview_st7inq_uxjysc.webp&w=1920&q=75" style="height:28px;width:100%;object-fit:contain;display:block;" alt="GrowEdgeX">
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:800;color:var(--navy);line-height:1.2;">GrowEdgeX</div>
+            <div style="font-size:9px;color:var(--muted);margin-top:1px;">growedgex.com</div>
+          </div>
+        </div>
+      </div>
+      <div class="people-col">
+        <div class="people-col-label" style="background:rgba(0,200,150,.08);color:var(--mint)">Presented To</div>
+        <div class="person-card-sm">
+          <div class="person-avatar-sm" style="background:var(--mint);color:var(--navy)">DM</div>
+          <div>
+            <div class="person-name-sm">Donovan Miske</div>
+            <div class="person-title-sm">CEO · Kona Medical</div>
+          </div>
+        </div>
+        <div class="person-card-sm">
+          <div class="person-avatar-sm" style="background:var(--sky);color:var(--white)">NK</div>
+          <div>
+            <div class="person-name-sm">Nancy Kristin</div>
+            <div class="person-title-sm">HR Director · Kona Medical</div>
+          </div>
+        </div>
+        <!-- Kona Medical badge -->
+        <div style="display:flex;align-items:center;gap:9px;background:rgba(1,109,94,.05);border:1.5px solid rgba(1,109,94,.2);border-radius:9px;padding:7px 12px 7px 7px;margin-top:2px;box-shadow:0 2px 6px rgba(1,109,94,.08);">
+          <div style="background:#016D5E;border-radius:6px;padding:4px 6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;width:80px;height:36px;">
+            <img src="https://kona-medical-consulting-v1778735737.websitepro-cdn.com/wp-content/uploads/2023/06/footer-logo.png" style="height:28px;width:100%;object-fit:contain;display:block;" alt="Kona Medical">
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:800;color:var(--navy);line-height:1.2;">Kona Medical</div>
+            <div style="font-size:9px;color:var(--muted);margin-top:1px;">konamedicalconsulting.com</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="cover-right">
+    <video class="cover-video" autoplay muted loop playsinline>
+      <source src="https://res.cloudinary.com/daxjhteb5/video/upload/v1772645094/WEB_HERO_nunlaa.mp4" type="video/mp4">
+    </video>
+    <div class="cover-video-ov"></div>
+    <div class="cover-badge anim d7">
+      <div class="cover-badge-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div>
+        <div class="cover-badge-title">Verified Partner</div>
+        <div class="cover-badge-sub">Trusted Since 2020 · growedgex.com</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- D2 S2: VIDEO INTRO -->
+<div class="slide vid-slide" data-deck="2" data-index="1" style="display:none">
+  <div class="vid-left">
+
+    <h2 class="vid-title anim d2">Inside Our<br><span class="hl">Workflow</span></h2>
+    <p class="vid-desc anim d3">Before we dive into the demo, please take a moment to watch this brief overview. This video captures our core vision and showcases how we are transforming the intake experience to match the speed, precision, and polish expected by today's leading healthcare organizations.</p>
+    <button class="vid-play-btn anim d4" id="btn-vid2" onclick="playVid('vid2')">
+      <span class="btn-icon">
+        <svg class="icon-play" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <svg class="icon-pause" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+      </span>
+      <span class="btn-label">Play Overview Video</span>
+    </button>
+  </div>
+  <div class="vid-right">
+    <video id="vid2" class="vid-player" preload="metadata" playsinline>
+      <source src="https://res.cloudinary.com/dax18qmve/video/upload/v1780445037/Growedgex_video_1_1_j0uc6o.mp4" type="video/mp4">
+    </video>
+    <div class="vid-overlay" id="vid2-ov" onclick="playVid('vid2')">
+      <div class="vid-play-circle">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      </div>
+      <div class="vid-overlay-label">Click to Play</div>
+    </div>
+    <div class="vid-controls" id="ctrl-vid2">
+      <input type="range" class="vid-scrubber" id="scrub-vid2" min="0" max="100" value="0" step="0.1"
+        oninput="scrubVid('vid2',this.value)" onmousedown="vidScrubStart('vid2')" onmouseup="vidScrubEnd('vid2')">
+      <div class="vid-ctrl-row">
+        <button class="vid-ctrl-btn" onclick="skipVid('vid2',-10)" title="Back 10s">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.32"/><text x="7" y="15" font-size="6" fill="currentColor" stroke="none" font-family="Inter,sans-serif" font-weight="700">10</text></svg>
+        </button>
+        <button class="vid-ctrl-btn" onclick="playVid('vid2')" id="ctrl-play-vid2" title="Play/Pause">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        </button>
+        <button class="vid-ctrl-btn" onclick="skipVid('vid2',10)" title="Forward 10s">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-3.32"/><text x="7" y="15" font-size="6" fill="currentColor" stroke="none" font-family="Inter,sans-serif" font-weight="700">10</text></svg>
+        </button>
+        <span class="vid-time" id="time-vid2">0:00 / 0:00</span>
+        <input type="range" class="vid-vol" id="vol-vid2" min="0" max="1" step="0.05" value="1" oninput="setVol('vid2',this.value)" title="Volume">
+        <button class="vid-ctrl-btn vid-fullscreen-btn" onclick="fsVid('vid2')" title="Fullscreen">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- D2 S3: REFERRAL SOURCES & ACTIONS -->
+<div class="slide bg-light" data-deck="2" data-index="1" style="display:none;flex-direction:column">
+  <div class="pad">
+    <div class="eyebrow anim d1">Stage 01 · Target: 2 Minutes</div>
+    <div class="s-head anim d2">Referral <span class="hl">Sources & Intake Actions</span></div>
+    <div class="grid-3" style="flex:1;margin-top:4px">
+      <div class="info-card anim d3" style="border-top:3px solid var(--blue)">
+        <div class="info-card-head">
+          <div class="info-card-icon" style="background:rgba(20,73,191,.08)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div>
+          <div class="info-card-title">Referral Sources</div>
+        </div>
+        <div class="list-items">
+          <div class="list-item"><div class="list-dot"></div>Hospitals & discharge planners</div>
+          <div class="list-item"><div class="list-dot"></div>Physician offices</div>
+          <div class="list-item"><div class="list-dot"></div>Skilled Nursing Facilities (SNFs)</div>
+          <div class="list-item"><div class="list-dot"></div>Case managers & community providers</div>
+          <div class="list-item"><div class="list-dot"></div>Fax, secure portal, telephone, EHR</div>
+        </div>
+      </div>
+      <div class="info-card anim d4" style="border-top:3px solid var(--mint)">
+        <div class="info-card-head">
+          <div class="info-card-icon" style="background:rgba(0,200,150,.08)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--mint)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+          <div class="info-card-title">Intake Actions</div>
+        </div>
+        <div class="list-items">
+          <div class="list-item"><div class="list-dot" style="background:var(--mint)"></div>Enter referral into system</div>
+          <div class="list-item"><div class="list-dot" style="background:var(--mint)"></div>Assign referral / case ID number</div>
+          <div class="list-item"><div class="list-dot" style="background:var(--mint)"></div>Acknowledge receipt to referral source</div>
+          <div class="list-item"><div class="list-dot" style="background:var(--mint)"></div>Establish referral priority level</div>
+          <div class="list-item"><div class="list-dot" style="background:var(--mint)"></div>Request any missing documentation</div>
+        </div>
+      </div>
+      <div class="info-card anim d5" style="border-top:3px solid var(--amber)">
+        <div class="info-card-head">
+          <div class="info-card-icon" style="background:rgba(245,168,0,.08)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></div>
+          <div class="info-card-title">Required Information</div>
+        </div>
+        <div class="list-items">
+          <div class="list-item"><div class="list-dot" style="background:var(--amber)"></div>Client demographics & contacts</div>
+          <div class="list-item"><div class="list-dot" style="background:var(--amber)"></div>Referring physician details</div>
+          <div class="list-item"><div class="list-dot" style="background:var(--amber)"></div>Primary diagnosis & skilled care needs</div>
+          <div class="list-item"><div class="list-dot" style="background:var(--amber)"></div>Insurance & payer information</div>
+          <div class="list-item"><div class="list-dot" style="background:var(--amber)"></div>Physician orders + requested SOC date</div>
+        </div>
+      </div>
+    </div>
+    <div class="flow-bar anim d6">
+      <div class="f-node hi"><div class="f-node-lbl">Receive</div><div class="f-node-val">Referral</div></div><div class="f-arr">→</div>
+      <div class="f-node"><div class="f-node-lbl">Enter</div><div class="f-node-val">System</div></div><div class="f-arr">→</div>
+      <div class="f-node"><div class="f-node-lbl">Assign</div><div class="f-node-val">Case ID</div></div><div class="f-arr">→</div>
+      <div class="f-node"><div class="f-node-lbl">Acknowledge</div><div class="f-node-val">Source</div></div><div class="f-arr">→</div>
+      <div class="f-node"><div class="f-node-lbl">Set</div><div class="f-node-val">Priority</div></div><div class="f-arr">→</div>
+      <div class="f-node hi"><div class="f-node-lbl">Proceed to</div><div class="f-node-val">Eligibility</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- D2 S3: ELIGIBILITY & AUTHORIZATION -->
+<div class="slide bg-light" data-deck="2" data-index="2" style="display:none;flex-direction:column">
+  <div class="pad">
+    <div class="eyebrow anim d1">Stage 02 · Target: 30 Minutes</div>
+    <div class="s-head anim d2">Eligibility, Insurance & <span class="hl">Authorization</span></div>
+    <div class="grid-2" style="flex:1">
+      <div class="check-panel anim d3">
+        <div class="check-panel-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Eligibility Checklist</div>
+        <div class="check-row good"><div class="check-ico" style="background:rgba(22,163,74,.12)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="check-txt"><strong>Homebound Status</strong>Client qualifies for home health services</div></div>
+        <div class="check-row good"><div class="check-ico" style="background:rgba(22,163,74,.12)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="check-txt"><strong>Skilled Care Need</strong>Nursing and/or therapy requirements confirmed</div></div>
+        <div class="check-row good"><div class="check-ico" style="background:rgba(22,163,74,.12)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="check-txt"><strong>Active Coverage Verified</strong>Benefits, deductibles, copayments confirmed</div></div>
+        <div class="check-row good"><div class="check-ico" style="background:rgba(22,163,74,.12)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="check-txt"><strong>Service Area & Capacity</strong>Agency can safely provide required care</div></div>
+        <div class="check-row good"><div class="check-ico" style="background:rgba(22,163,74,.12)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div><div class="check-txt"><strong>Authorization Submitted</strong>Tracked through completion</div></div>
+      </div>
+      <div class="check-panel anim d4">
+        <div class="check-panel-title"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Escalation Triggers</div>
+        <div class="check-row bad"><div class="check-ico" style="background:rgba(232,48,74,.12)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><div class="check-txt"><strong>Coverage Unverifiable</strong>Immediately notify leadership</div></div>
+        <div class="check-row bad"><div class="check-ico" style="background:rgba(232,48,74,.12)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><div class="check-txt"><strong>Authorization Denied / Delayed</strong>Escalate with full timeline impact</div></div>
+        <div class="check-row bad"><div class="check-ico" style="background:rgba(232,48,74,.12)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><div class="check-txt"><strong>Outside Service Area</strong>Refer or transfer to appropriate agency</div></div>
+        <div class="check-row bad"><div class="check-ico" style="background:rgba(232,48,74,.12)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><div class="check-txt"><strong>Payer Blocks Admission</strong>Escalate to leadership immediately</div></div>
+        <div class="check-row bad"><div class="check-ico" style="background:rgba(232,48,74,.12)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div><div class="check-txt"><strong>SOC Deadline at Risk</strong>Immediate coordination required</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- D2 S4: CLINICIAN ASSIGNMENT -->
+<div class="slide bg-light" data-deck="2" data-index="3" style="display:none;flex-direction:column">
+  <div class="pad">
+    <div class="eyebrow anim d1">Stage 03 · Target: 25 Min Post-Clearance</div>
+    <div class="s-head anim d2">Clinician Assignment & <span class="hl">SOC Scheduling</span></div>
+    <div class="disc-row anim d3">
+      <div class="disc-card"><div class="disc-icon" style="background:rgba(20,73,191,.08)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="1.8" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><div class="disc-abbr">RN</div><div class="disc-name">Registered Nurse</div></div>
+      <div class="disc-card"><div class="disc-icon" style="background:rgba(0,200,150,.08)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--mint)" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M6 20v-2a6 6 0 0 1 12 0v2"/></svg></div><div class="disc-abbr">PT</div><div class="disc-name">Physical Therapist</div></div>
+      <div class="disc-card"><div class="disc-icon" style="background:rgba(245,168,0,.08)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="1.8" stroke-linecap="round"><path d="M7 11.5V14h10v-2.5M12 2v4M8 6l4-4 4 4"/><rect x="5" y="14" width="14" height="4" rx="1"/></svg></div><div class="disc-abbr">OT</div><div class="disc-name">Occupational Therapist</div></div>
+      <div class="disc-card"><div class="disc-icon" style="background:rgba(0,153,221,.08)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--sky)" stroke-width="1.8" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div class="disc-abbr">SLP</div><div class="disc-name">Speech-Language Pathologist</div></div>
+      <div class="disc-card"><div class="disc-icon" style="background:rgba(108,99,255,.08)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="1.8" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="disc-abbr">MSW</div><div class="disc-name">Medical Social Worker</div></div>
+      <div class="disc-card"><div class="disc-icon" style="background:rgba(232,48,74,.08)"><svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="1.8" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div><div class="disc-abbr">HHA</div><div class="disc-name">Home Health Aide</div></div>
+    </div>
+    <div class="crit-section anim d4">
+      <div class="crit-title">Assignment Match Criteria</div>
+      <div class="crit-grid">
+        <div class="crit-card"><div class="crit-dot"></div><span class="crit-txt">Required discipline & clinical expertise</span></div>
+        <div class="crit-card"><div class="crit-dot" style="background:var(--mint)"></div><span class="crit-txt">Geographic coverage area</span></div>
+        <div class="crit-card"><div class="crit-dot" style="background:var(--amber)"></div><span class="crit-txt">Availability & workload balance</span></div>
+        <div class="crit-card"><div class="crit-dot" style="background:var(--sky)"></div><span class="crit-txt">Client-specific clinical needs</span></div>
+        <div class="crit-card"><div class="crit-dot" style="background:var(--purple)"></div><span class="crit-txt">Language & cultural considerations</span></div>
+        <div class="crit-card hi"><div class="crit-dot"></div><span class="crit-txt">SOC scheduled within payer timeframes</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- D2 S5: PRIORITY FRAMEWORK -->
+<div class="slide bg-light" data-deck="2" data-index="4" style="display:none;flex-direction:column">
+  <div class="pad">
+    <div class="eyebrow anim d1">Stage 06</div>
+    <div class="s-head anim d2">Referral <span class="hl">Prioritization</span> Framework</div>
+    <div class="pri-grid">
+      <div class="pri-card anim d3">
+        <div class="pri-accent" style="background:var(--red)"></div>
+        <div class="pri-label" style="background:rgba(232,48,74,.08);color:var(--red)">Priority 1</div>
+        <div class="pri-title" style="display:flex;align-items:center;gap:8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Urgent</div>
+        <div class="pri-items">
+          <div class="pri-item"><div class="pri-dot" style="background:var(--red)"></div>Same-day hospital discharges</div>
+          <div class="pri-item"><div class="pri-dot" style="background:var(--red)"></div>High-risk clients</div>
+          <div class="pri-item"><div class="pri-dot" style="background:var(--red)"></div>Post-surgical admissions</div>
+          <div class="pri-item"><div class="pri-dot" style="background:var(--red)"></div>Cardiac-related conditions</div>
+          <div class="pri-item"><div class="pri-dot" style="background:var(--red)"></div>Complex wound care cases</div>
+          <div class="pri-item"><div class="pri-dot" style="background:var(--red)"></div>Safety & safeguarding concerns</div>
+        </div>
+      </div>
+      <div class="pri-card anim d4">
+        <div class="pri-accent" style="background:var(--amber)"></div>
+        <div class="pri-label" style="background:rgba(245,168,0,.08);color:var(--amber)">Priority 2</div>
+        <div class="pri-title" style="display:flex;align-items:center;gap:8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Time-Sensitive</div>
+        <div class="pri-items">
+          <div class="pri-item"><div class="pri-dot" style="background:var(--amber)"></div>Pending insurance authorizations</div>
+          <div class="pri-item"><div class="pri-dot" style="background:var(--amber)"></div>Next-day admissions</div>
+          <div class="pri-item"><div class="pri-dot" style="background:var(--amber)"></div>Expiring referrals</div>
+          <div class="pri-item"><div class="pri-dot" style="background:var(--amber)"></div>Delayed physician orders</div>
+          <div class="pri-item"><div class="pri-dot" style="background:var(--amber)"></div>Time-sensitive payer requirements</div>
+        </div>
+      </div>
+      <div class="pri-card anim d5">
+        <div class="pri-accent" style="background:var(--green)"></div>
+        <div class="pri-label" style="background:rgba(22,163,74,.08);color:var(--green)">Priority 3</div>
+        <div class="pri-title" style="display:flex;align-items:center;gap:8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Routine</div>
+        <div class="pri-items">
+          <div class="pri-item"><div class="pri-dot" style="background:var(--green)"></div>Standard home health referrals</div>
+          <div class="pri-item"><div class="pri-dot" style="background:var(--green)"></div>Routine follow-up activities</div>
+          <div class="pri-item"><div class="pri-dot" style="background:var(--green)"></div>Non-urgent documentation requests</div>
+        </div>
+        <div class="pri-note" style="background:rgba(20,73,191,.04);border:1px solid rgba(20,73,191,.12)"><strong style="color:var(--blue);display:block;font-size:10px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px">Best Practice</strong>Maintain full visibility of active referrals. Complete tasks to a logical stopping point before transitioning.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- D2 S6: THANK YOU -->
+<div class="slide ty-slide" data-deck="2" data-index="5" style="display:none">
+  <div class="ty-left">
+    <img class="ty-logo anim d1"
+      src="https://www.growedgex.com/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdaxjhteb5%2Fimage%2Fupload%2Fv1776130636%2FGrowedge_white_background-removebg-preview_st7inq_uxjysc.webp&w=1920&q=75"
+      alt="GrowEdgeX" onerror="this.style.display='none';document.getElementById('tyFb2').style.display='block'">
+    <span id="tyFb2" class="ty-logo-fb" style="display:none">GrowEdge<span style="color:var(--mint)">X</span></span>
+    <div class="ty-big anim d2">Thank<br>You.<br><span class="hl">Questions?</span></div>
+    <div class="ty-people anim d3">
+      <div class="ty-person">
+        <div class="ty-avatar" style="color:var(--mint)">DM</div>
+        <div>
+          <div class="ty-pname">Donovan Miske</div>
+          <div class="ty-ptitle">Chief Executive Officer</div>
+          <div class="ty-porg" style="color:rgba(255,255,255,.5)">Kona Medical Consulting</div>
+        </div>
+      </div>
+      <div class="ty-person">
+        <div class="ty-avatar" style="color:var(--sky)">NK</div>
+        <div>
+          <div class="ty-pname">Nancy Kristin</div>
+          <div class="ty-ptitle">Human Resources Director</div>
+          <div class="ty-porg" style="color:rgba(255,255,255,.5)">Kona Medical Consulting</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="ty-right">
+    <div class="ty-eyebrow anim d1">Patient Care Coordinator Process</div>
+    <div class="ty-tagline anim d2">Patient Care<br><span class="hl">Coordinator</span></div>
+    <p class="ty-desc anim d3">GrowEdgeX ensures every referral is processed with speed, precision, and full compliance — delivering exceptional outcomes for your clients and your organization.</p>
+    <div class="ty-pills anim d4">
+      <div class="ty-pill">✦ Regulatory Compliant</div>
+      <div class="ty-pill">✦ Client-Centered</div>
+      <div class="ty-pill">✦ HIPAA Secure</div>
+      <div class="ty-pill">✦ Trusted Since 2020</div>
+    </div>
+    <div class="ty-contact anim d5">
+      <div class="ty-contact-item"><div class="ty-contact-lbl">Phone</div><div class="ty-contact-val"><a href="tel:+14699292524">+1 (469) 929-2524</a></div></div>
+      <div class="ty-contact-item"><div class="ty-contact-lbl">Email</div><div class="ty-contact-val"><a href="mailto:admin@growedgex.com">admin@growedgex.com</a></div></div>
+      <div class="ty-contact-item"><div class="ty-contact-lbl">Website</div><div class="ty-contact-val"><a href="https://growedgex.com" target="_blank">growedgex.com</a></div></div>
+    </div>
+    <div class="cert-badges anim d6">
+      <div class="cert-badge">
+        <img src="https://res.cloudinary.com/dax18qmve/image/upload/v1780440638/iso-27001-standard-certificate-badge-information-security-management_274258-274_m1dae8.png" alt="ISO 27001">
+        <div class="cert-badge-label">ISO 27001</div>
+      </div>
+      <div style="width:1px;height:50px;background:var(--border)"></div>
+      <div class="cert-badge">
+        <img src="https://res.cloudinary.com/dax18qmve/image/upload/v1780440546/27001-removebg-preview_uso2zj.png" alt="ISO 9001">
+        <div class="cert-badge-label">ISO 9001</div>
+      </div>
+      <div style="width:1px;height:50px;background:var(--border)"></div>
+      <div class="cert-badge">
+        <img src="https://res.cloudinary.com/dax18qmve/image/upload/v1780440938/download_kewt2q.png" alt="HIPAA Compliant">
+        <div class="cert-badge-label">HIPAA Compliant</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<!-- ══ BOTTOM BAR ══ -->
+<div class="bot-bar">
+  <div class="bb-left">
+    <div class="bb-dots" id="dots"></div>
+    <div class="bb-count" id="counter">01 / 06</div>
+  </div>
+  <div class="bb-right">
+    <div class="bb-links">
+      <a href="https://www.growedgex.com/privacy-policy" target="_blank">Privacy Policy</a>
+      <span class="bb-sep">·</span>
+      <a href="https://www.growedgex.com/terms" target="_blank">Terms</a>
+      <span class="bb-sep">·</span>
+      <a href="https://www.growedgex.com/about" target="_blank">About</a>
+      <span class="bb-sep">·</span>
+      <a href="https://konamedicalconsulting.com/" target="_blank">Kona Medical</a>
+    </div>
+    <span class="bb-sep">·</span>
+    <span class="bb-copy">© 2025 GrowEdgeX</span>
+    <div class="nav-pair">
+      <button class="nav-btn" id="prevBtn" onclick="go(-1)" disabled>←</button>
+      <button class="nav-btn" id="nextBtn" onclick="go(1)">→</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── DECK STATE ── */
+let activeDeck = 1;
+let decks = {};
+let current = 0;
+let animating = false;
+
+// Build slide index per deck
+function buildDecks() {
+  const allSlides = Array.from(document.querySelectorAll('.slide'));
+  decks[1] = allSlides.filter(s => s.dataset.deck === '1');
+  decks[2] = allSlides.filter(s => s.dataset.deck === '2');
+}
+
+/* ── DOTS ── */
+const dotsWrap = document.getElementById('dots');
+function buildDots(deckNum) {
+  dotsWrap.innerHTML = '';
+  const slides = decks[deckNum];
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => goTo(i);
+    dotsWrap.appendChild(d);
+  });
+}
+
+function updateUI(i, deckNum) {
+  const slides = decks[deckNum];
+  document.querySelectorAll('.dot').forEach((d, j) => d.classList.toggle('active', j === i));
+  document.getElementById('counter').textContent =
+    String(i + 1).padStart(2, '0') + ' / ' + String(slides.length).padStart(2, '0');
+  document.getElementById('progress').style.width = ((i + 1) / slides.length * 100) + '%';
+  document.getElementById('prevBtn').disabled = i === 0;
+  document.getElementById('nextBtn').disabled = i === slides.length - 1;
+}
+
+function animateIn(slide) {
+  const els = slide.querySelectorAll('.anim');
+  els.forEach(el => el.classList.remove('show'));
+  requestAnimationFrame(() => requestAnimationFrame(() => els.forEach(el => el.classList.add('show'))));
+  slide.querySelectorAll('.kpi-bar[data-w]').forEach(bar => {
+    bar.style.width = '0%';
+    setTimeout(() => { bar.style.width = bar.dataset.w; }, 350);
+  });
+}
+
+function goTo(next, dir) {
+  pauseAllVids();
+  const slides = decks[activeDeck];
+  if (animating || next === current || next < 0 || next >= slides.length) return;
+  animating = true;
+  const d = dir !== undefined ? dir : (next > current ? 1 : -1);
+  const out = slides[current], inn = slides[next];
+  inn.style.display = 'flex';
+  inn.style.opacity = '1';
+  inn.classList.add('active', d > 0 ? 'enter-right' : 'enter-left');
+  out.classList.add(d > 0 ? 'exit-left' : 'exit-right');
+  setTimeout(() => {
+    out.classList.remove('active', 'exit-left', 'exit-right');
+    out.style.display = 'none';
+    out.style.opacity = '';
+    inn.classList.remove('enter-right', 'enter-left');
+    current = next;
+    animating = false;
+    updateUI(current, activeDeck);
+    animateIn(inn);
+  }, 490);
+}
+
+function go(d) { goTo(current + d, d); }
+
+/* ── DECK SWITCH ── */
+function switchDeck(num) {
+  if (num === activeDeck) return;
+
+  // Hide all current deck slides
+  decks[activeDeck].forEach(s => { s.classList.remove('active'); s.style.display = 'none'; s.style.opacity = ''; });
+
+  activeDeck = num;
+  current = 0;
+
+  // Show first slide of new deck
+  const slides = decks[num];
+  slides.forEach((s, i) => {
+    s.style.display = i === 0 ? 'flex' : 'none';
+    s.style.opacity = '';
+  });
+  slides[0].classList.add('active');
+
+  // Update switcher buttons
+  document.querySelectorAll('.ds-btn').forEach((btn, i) => btn.classList.toggle('active', i + 1 === num));
+
+  // Update subtitle
+  document.getElementById('tbSubtitle').textContent = num === 1
+    ? 'Home Health Intake Coordinator'
+    : 'Patient Care Coordinator Process';
+
+  buildDots(num);
+  updateUI(0, num);
+  animateIn(slides[0]);
+}
+
+/* ── KEYBOARD ── */
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') go(1);
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') go(-1);
+  if (e.key === '1') switchDeck(1);
+  if (e.key === '2') switchDeck(2);
+});
+
+/* ── CLICK NAV ── */
+document.getElementById('deck').addEventListener('click', e => {
+  if (e.target.closest('.bot-bar') || e.target.closest('a') ||
+      e.target.closest('.nav-btn') || e.target.closest('.ds-btn') ||
+      e.target.closest('.vid-play-btn') || e.target.closest('.vid-overlay') ||
+      e.target.closest('.vid-right')) return;
+  go(e.clientX > window.innerWidth * 0.18 ? 1 : -1);
+});
+
+/* ── CURSOR ── */
+const cur = document.getElementById('cursor');
+document.addEventListener('mousemove', e => { cur.style.left = e.clientX + 'px'; cur.style.top = e.clientY + 'px'; });
+document.addEventListener('mousedown', () => cur.classList.add('big'));
+document.addEventListener('mouseup', () => cur.classList.remove('big'));
+
+/* ── PARTICLES ── */
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resize(); window.addEventListener('resize', resize);
+const pts = Array.from({ length: 28 }, () => ({
+  x: Math.random() * canvas.width, y: Math.random() * canvas.height,
+  r: Math.random() * 2 + .5, vx: (Math.random() - .5) * .22, vy: (Math.random() - .5) * .22,
+  a: Math.random() * .05 + .02
+}));
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  pts.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    if (p.x < 0) p.x = canvas.width; if (p.x > canvas.width) p.x = 0;
+    if (p.y < 0) p.y = canvas.height; if (p.y > canvas.height) p.y = 0;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(20,73,191,${p.a})`; ctx.fill();
+  });
+  requestAnimationFrame(draw);
+}
+draw();
+
+/* ── VIDEO PLAY ── */
+function playVid(id) {
+  const video = document.getElementById(id);
+  const overlay = document.getElementById(id + '-ov');
+  const btn = document.getElementById('btn-' + id);
+  if (!video) return;
+
+  // ripple
+  if (btn) {
+    const r = document.createElement('span');
+    r.className = 'ripple';
+    const rect = btn.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    r.style.cssText = `width:${size}px;height:${size}px;left:${rect.width/2 - size/2}px;top:${rect.height/2 - size/2}px`;
+    btn.appendChild(r);
+    setTimeout(() => r.remove(), 600);
+  }
+
+  if (video.paused) {
+    video.play();
+    if (overlay) overlay.classList.add('hidden');
+    if (btn) {
+      btn.classList.add('playing');
+      const lbl = btn.querySelector('.btn-label');
+      if (lbl) lbl.textContent = 'Pause Video';
+    }
+    updateCtrlPlayBtn(id, true);
+  } else {
+    video.pause();
+    if (overlay) overlay.classList.remove('hidden');
+    if (btn) {
+      btn.classList.remove('playing');
+      const lbl = btn.querySelector('.btn-label');
+      if (lbl) lbl.textContent = 'Play Overview Video';
+    }
+    updateCtrlPlayBtn(id, false);
+  }
+}
+function pauseAllVids() {
+  ['vid1','vid2'].forEach(id => {
+    const v = document.getElementById(id);
+    const ov = document.getElementById(id+'-ov');
+    const btn = document.getElementById('btn-' + id);
+    if (v && !v.paused) {
+      v.pause();
+      if (ov) ov.classList.remove('hidden');
+      if (btn) {
+        btn.classList.remove('playing');
+        const lbl = btn.querySelector('.btn-label');
+        if (lbl) lbl.textContent = 'Play Overview Video';
+      }
+      updateCtrlPlayBtn(id, false);
+    }
+  });
+}
+
+/* ── PLAYBACK CONTROLS ── */
+const _scrubbing = {};
+
+function fmtTime(s) {
+  if (isNaN(s)) return '0:00';
+  const m = Math.floor(s/60), sec = Math.floor(s%60);
+  return m + ':' + String(sec).padStart(2,'0');
+}
+
+function updateCtrlPlayBtn(id, playing) {
+  const btn = document.getElementById('ctrl-play-' + id);
+  if (!btn) return;
+  btn.innerHTML = playing
+    ? '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>'
+    : '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+}
+
+function initVidControls(id) {
+  const v = document.getElementById(id);
+  if (!v) return;
+  v.addEventListener('timeupdate', () => {
+    if (_scrubbing[id]) return;
+    const pct = v.duration ? (v.currentTime / v.duration) * 100 : 0;
+    const scrub = document.getElementById('scrub-' + id);
+    if (scrub) { scrub.value = pct; scrub.style.setProperty('--pct', pct + '%'); }
+    const time = document.getElementById('time-' + id);
+    if (time) time.textContent = fmtTime(v.currentTime) + ' / ' + fmtTime(v.duration);
+  });
+  v.addEventListener('ended', () => {
+    updateCtrlPlayBtn(id, false);
+    const ov = document.getElementById(id + '-ov');
+    if (ov) ov.classList.remove('hidden');
+    const btn = document.getElementById('btn-' + id);
+    if (btn) { btn.classList.remove('playing'); const lbl = btn.querySelector('.btn-label'); if(lbl) lbl.textContent='Play Overview Video'; }
+  });
+}
+
+function scrubVid(id, val) {
+  const v = document.getElementById(id);
+  const scrub = document.getElementById('scrub-' + id);
+  if (v && v.duration) { v.currentTime = (val / 100) * v.duration; }
+  if (scrub) scrub.style.setProperty('--pct', val + '%');
+}
+function vidScrubStart(id) { _scrubbing[id] = true; }
+function vidScrubEnd(id) { _scrubbing[id] = false; }
+
+function skipVid(id, sec) {
+  const v = document.getElementById(id);
+  if (!v) return;
+  v.currentTime = Math.max(0, Math.min(v.duration || 0, v.currentTime + sec));
+  // start playing if paused and wasn't yet started
+  if (v.paused && v.currentTime > 0) { playVid(id); }
+}
+
+function setVol(id, val) {
+  const v = document.getElementById(id);
+  if (v) { v.volume = val; v.muted = (val == 0); }
+  const slider = document.getElementById('vol-' + id);
+  if (slider) slider.style.background = `linear-gradient(to right,rgba(255,255,255,.8) ${val*100}%,rgba(255,255,255,.25) ${val*100}%)`;
+}
+
+function fsVid(id) {
+  const v = document.getElementById(id);
+  if (!v) return;
+  if (v.requestFullscreen) v.requestFullscreen();
+  else if (v.webkitRequestFullscreen) v.webkitRequestFullscreen();
+}
+
+// init on load
+['vid1','vid2'].forEach(initVidControls);
+
+/* ── INIT ── */
+buildDecks();
+buildDots(1);
+updateUI(0, 1);
+animateIn(decks[1][0]);
+</script>
+</body>
+</html>
