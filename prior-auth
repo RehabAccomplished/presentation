@@ -700,9 +700,9 @@ html,body{width:100%;height:100%;overflow:hidden;font-family:'Inter',sans-serif;
 <div class="slide ty-slide" data-deck="1" data-index="5">
   <div class="ty-left">
     <img class="ty-logo anim d1"
-      src="https://www.growedgex.com/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdaxjhteb5%2Fimage%2Fupload%2Fv1776130636%2FGrowedge_white_background-removebg-preview_st7inq_uxjysc.webp&w=1920&q=75"
-      alt="GrowEdgeX" onerror="this.style.display='none';document.getElementById('tyFb1').style.display='block'">
-    <span id="tyFb1" class="ty-logo-fb" style="display:none">GrowEdge<span style="color:var(--mint)">X</span></span>
+      src="https://res.cloudinary.com/dax18qmve/image/upload/v1788976912/home_health_and_hospice_logo_symbol_only_converted_xee4az.png"
+      alt="Advanced Home Health and Hospice" style="height:80px;width:auto;object-fit:contain;filter:none;" onerror="this.style.display='none';document.getElementById('tyFb1').style.display='block'">
+    <span id="tyFb1" class="ty-logo-fb" style="display:none">Advanced Home Health<span style="color:var(--mint)"> & Hospice</span></span>
     <div class="ty-big anim d2">Thank<br>You.<br><span class="hl">Questions?</span></div>
   </div>
   <div class="ty-right">
